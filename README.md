@@ -1,4 +1,4 @@
-# Foobar
+# Collibra 2 LookML
 
 A Python library for translating Collibra assets and relationships into LookML files.
 
