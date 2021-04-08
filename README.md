@@ -8,6 +8,10 @@ A Python library for translating Collibra assets and relationships into LookML f
 
 ## Usage
 
+Add your credentials to the `credentials.ini` file (see the example file and remove the `.example` extension).
+
+Then run:
+
 ```python
 python main.py
 ```
