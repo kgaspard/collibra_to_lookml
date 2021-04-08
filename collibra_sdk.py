@@ -73,21 +73,37 @@ def lookml_from_data_dictionary(data_dictionary_domainId):
 
     assets = get_domain_assets(data_dictionary_domainId)
     community_name = get_domain_details(data_dictionary_domainId)['community']['name']
+    view_file_name = 'main'
 
     fields = []
     for asset in assets:
         asset_type = asset['type']['name']
+        if asset_type == 'Data Model': view_file_name = pascalcase_string(asset['name'])
         if asset_type == 'Data Entity' or asset_type == 'Data Attribute':
             asset_name = asset['name']
             group_label = asset_name.split()[0]
-            text = f"""dimension: {pascalcase_string(asset_name)} {{
-    type: string
-    sql: ${{TABLE}}.{pascalcase_string(asset_name)} ;;
-    label: \"{asset_name}\"
-    group_label: \"{group_label}\"
-    required_accrss_grants: {pascalcase_string(community_name)}
-}}"""
+            text = f"""\tdimension: {pascalcase_string(asset_name)} {{
+    \ttype: string
+    \tsql: ${{TABLE}}.{pascalcase_string(asset_name)} ;;
+    \tlabel: \"{asset_name}\"
+    \tgroup_label: \"{group_label}\"
+    \trequired_access_grants: [{pascalcase_string(community_name)}]
+\t}}\n\n"""
             fields.append(text)
-    text = f"measure: count {{\n\ttype: count\n}}"
+    text = f"""\tmeasure: count {{
+    \ttype: count
+\t}}\n"""
     fields.append(text)
+
+    # Add view file name
+
+    fields.insert(0,f"view: {view_file_name}{{\n")
+    fields.append("}")
+
+    # Write .lkml file
+    view_file = open(f"{view_file_name}.view.lkml","w")
+    view_file.writelines(fields)
+    view_file.close()
+    
     return fields
+
