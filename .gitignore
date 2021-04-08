@@ -1,0 +1,4 @@
+*.ini
+.vscode/
+__pycache__/
+*.xlsx
