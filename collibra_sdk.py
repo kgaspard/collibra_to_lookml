@@ -54,6 +54,16 @@ def get_domain_assets(domainId):
         , params={'domainId': domainId, 'excludeMeta': 'true'})
     return r.json()['results']
 
+def get_asset_attributes(assetId, attributeName=None):
+    r = requests.get(f'{base_url}/attributes'
+        , headers={'Authorization': create_auth()}
+        , params={'assetId': assetId})
+    results = r.json()['results']
+    results_simplified = {}
+    for result in results: results_simplified[result['type']['name']] = result['value']
+    if attributeName: return results_simplified[attributeName]
+    else: return results_simplified
+
 def lookup_data_dictionary_glossary_terms(data_dictionary_domainId):
     communityId = get_domain_details(data_dictionary_domainId)['community']['id']
     communityDomains = get_domains(communityId)
@@ -76,27 +86,52 @@ def lookml_from_data_dictionary(data_dictionary_domainId):
     view_file_name = 'main'
 
     fields = []
+    numeric_fields = []
     for asset in assets:
         asset_type = asset['type']['name']
         if asset_type == 'Data Model': view_file_name = pascalcase_string(asset['name'])
-        if asset_type == 'Data Entity' or asset_type == 'Data Attribute':
+        # if asset_type == 'Data Entity' or asset_type == 'Data Attribute':
+        if asset_type == 'Data Attribute':
             asset_name = asset['name']
             group_label = asset_name.split()[0]
-            text = f"""\tdimension: {pascalcase_string(asset_name)} {{
-    \ttype: string
+            asset_type = get_asset_attributes(asset['id'], "Technical Data Type")
+            if asset_type == "timestamp":
+                text = f"""\tdimension_group: {pascalcase_string(asset_name)} {{
+    \ttype: time
+    \tsql: ${{TABLE}}.{pascalcase_string(asset_name)} ;;
+    \tlabel: \"{asset_name}\"
+    \trequired_access_grants: [{pascalcase_string(community_name)}]
+\t}}\n\n"""
+            else:
+                text = f"""\tdimension: {pascalcase_string(asset_name)} {{
+    \ttype: {asset_type or 'string'}
     \tsql: ${{TABLE}}.{pascalcase_string(asset_name)} ;;
     \tlabel: \"{asset_name}\"
     \tgroup_label: \"{group_label}\"
     \trequired_access_grants: [{pascalcase_string(community_name)}]
 \t}}\n\n"""
             fields.append(text)
+
+        if asset_type == "number":
+            text = f"""\tmeasure: total_{pascalcase_string(asset_name)} {{
+    \ttype: sum
+    \tsql: ${{{pascalcase_string(asset_name)}}} ;;
+    \tvalue_format_name: decimal_1
+\t}}\n\n"""
+            fields.append(text)
+            text = f"""\tmeasure: average_{pascalcase_string(asset_name)} {{
+    \ttype: average
+    \tsql: ${{{pascalcase_string(asset_name)}}} ;;
+    \tvalue_format_name: decimal_2
+\t}}\n\n"""
+            fields.append(text)
+
     text = f"""\tmeasure: count {{
     \ttype: count
 \t}}\n"""
     fields.append(text)
 
     # Add view file name
-
     fields.insert(0,f"view: {view_file_name}{{\n")
     fields.append("}")
 
