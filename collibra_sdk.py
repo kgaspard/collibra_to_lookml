@@ -133,6 +133,7 @@ def lookml_from_data_dictionary(data_dictionary_domainId):
 
     # Add view file name
     fields.insert(0,f"view: {view_file_name}{{\n")
+    fields.insert(1,f"\tsql_table_name: table ;;\n\n")
     fields.append("}")
 
     # Write .lkml file
