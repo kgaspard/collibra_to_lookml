@@ -8,15 +8,12 @@ A Python library for translating Collibra assets and relationships into LookML f
 
 ## Usage
 
-Add your credentials to the `credentials.ini` file (see the example file and remove the `.example` extension).
-
-Then run:
-
+1) Add your credentials to the `credentials.ini` file (see the example file and remove the `.example` extension).
+2) Specify the community and the data dictionary entity type in Collibra in the `config.ini` file (see the example file and remove the `.example` extension).
+3) Run:
 ```python
 python main.py
 ```
-
-Open the main.py file to see an example usage of the SDK
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

@@ -1,6 +1,6 @@
 import requests, base64, configparser
 
-def read_config_file():
+def read_credentials_file():
     config = configparser.ConfigParser()
     config.read('credentials.ini')
     result = {
@@ -10,11 +10,11 @@ def read_config_file():
     }
     return result
 
-base_url = read_config_file()['base_url']
+base_url = read_credentials_file()['base_url']
 
 def create_auth():
-    username = read_config_file()['username']
-    password = read_config_file()['password']
+    username = read_credentials_file()['username']
+    password = read_credentials_file()['password']
     usrPass = "%s:%s" % (username, password)
     b64Val = base64.b64encode(usrPass.encode()).decode("ascii")
     return "Basic %s" % b64Val
